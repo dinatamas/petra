@@ -25,6 +25,7 @@ class Behavior(NamedTuple):
 
 
 class Trial(NamedTuple):
+    idx: int
     valid: bool
     valid_count: int
     lat_pass: float
@@ -35,6 +36,7 @@ class Trial(NamedTuple):
     freq_alternative_side: int
     freq_lookback_exp: int
     freq_look_up: int
+    freq_look_around: int
     freq_towards_stops: int
     freq_approach_again: int
     freq_walk_away: int
@@ -52,7 +54,7 @@ def main():
 
         try:
             horizontal, vertical = load_files(subdir)
-        except DataLoadError, InvalidDataError:
+        except (DataLoadError, InvalidDataError):
             continue
 
         horizontal_rows.extend(horizontal)
@@ -105,14 +107,14 @@ def main():
                 worksheet.column_dimensions.group(hide_col_start, hide_col_end, hidden=True)
 
             # Conditionally color frequencies when data is available.
-            data_range = f"H2:{worksheet.cell(row=worksheet.max_row, column=worksheet.max_column).coordinate}"
-            worksheet.conditional_formatting.add(data_range, FormulaRule(formula=['=AND($B2=TRUE,H2>0)'], fill=dark_green_fill))
-            worksheet.conditional_formatting.add(data_range, FormulaRule(formula=['=AND($B2=FALSE,H2>0)'], fill=dark_red_fill))
+            data_range = f"I2:{worksheet.cell(row=worksheet.max_row, column=worksheet.max_column).coordinate}"
+            worksheet.conditional_formatting.add(data_range, FormulaRule(formula=['=AND($C2=TRUE,I2>0)'], fill=dark_green_fill))
+            worksheet.conditional_formatting.add(data_range, FormulaRule(formula=['=AND($C2=FALSE,I2>0)'], fill=dark_red_fill))
 
             # Conditionally color based on attempt success.
             data_range = f"B2:{worksheet.cell(row=worksheet.max_row, column=worksheet.max_column).coordinate}"
-            worksheet.conditional_formatting.add(data_range, FormulaRule(formula=['$B2=TRUE'], fill=light_green_fill))
-            worksheet.conditional_formatting.add(data_range, FormulaRule(formula=['$B2=FALSE'], fill=light_red_fill))
+            worksheet.conditional_formatting.add(data_range, FormulaRule(formula=['$C2=TRUE'], fill=light_green_fill))
+            worksheet.conditional_formatting.add(data_range, FormulaRule(formula=['$C2=FALSE'], fill=light_red_fill))
 
             # Add an outer border around the entire populated part of the sheet.
             for row in range(1, worksheet.max_row + 1):
@@ -239,6 +241,7 @@ def process_excel(file):
             yellow(f' [?] A {file} file {i+1}. tesztben van behavior a stop után.')
 
         trials.append(Trial(
+            idx = i + 1,
             valid = valid,
             valid_count = 0,  # Temporarily.
             lat_pass = stop.time - approach_start.time if valid else None,
@@ -249,6 +252,7 @@ def process_excel(file):
             freq_alternative_side = len(find_behaviors(r"alternative_side")),
             freq_lookback_exp = len(find_behaviors(r"lookback_exp")),
             freq_look_up = len(find_behaviors(r"look_up")),
+            freq_look_around = len(find_behaviors(r"look_around")),
             freq_towards_stops = len(find_behaviors(r"towards_stops")),
             freq_approach_again = len(find_behaviors(r"approach_again")),
             freq_walk_away = len(find_behaviors(r"walk_away")),
